@@ -1,0 +1,90 @@
+#cloud-config
+coreos:
+  units:
+    - name: "redis.service"
+      command: "start"
+      content: |
+        [Unit]
+        Description=Redis database
+        After=docker.service
+
+        [Service]
+        EnvironmentFile=-/etc/default/redis
+        ExecStartPre=-/bin/docker rm -f redis
+        ExecStartPre=-/bin/docker pull redis:alpine
+        ExecStart=/bin/docker run --name redis $OPTS redis:alpine redis-server --appendonly yes
+        Restart=on-failure
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: "lto.service"
+      command: "start"
+      content: |
+        [Unit]
+        Description=LTO
+        After=docker.service
+
+        [Service]
+        EnvironmentFile=-/etc/default/lto
+        ExecStartPre=-/bin/docker rm -f lto
+        ExecStartPre=-/bin/docker pull ragnarb/lto
+        ExecStart=/bin/docker run --name lto --link redis:redis $OPTS ragnarb/lto
+        Restart=on-failure
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: "caddy.service"
+      command: "start"
+      content: |
+        [Unit]
+        Description=Caddy HTTP/2 server
+        After=lto.service docker.service
+        Requires=lto.service
+
+        [Service]
+        EnvironmentFile=-/etc/default/caddy
+        ExecStartPre=-/bin/docker rm -f caddy
+        ExecStartPre=-/bin/docker pull abiosoft/caddy
+        ExecStart=/bin/docker run --name caddy --link lto:lto $OPTS abiosoft/caddy
+        Restart=on-failure
+
+        [Install]
+        WantedBy=multi-user.target
+
+write_files:
+  - path: "/etc/default/lto"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      S3_ACCESS_KEY=""
+      S3_SECRET_KEY=""
+      S3_REGION=""
+      S3_BUCKET=""
+      URL_SECRET=""
+      FILES_PATH=""
+      BASE_URL=""
+      OPTS=""
+  - path: "/etc/default/redis"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      OPTS="-v /opt/redis:/data"
+  - path: "/etc/default/caddy"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      OPTS="-p 80:80 -p 443:443 -v /opt/caddy/Caddyfile:/etc/Caddyfile -v /opt/caddy/certs:/root/.caddy -v /opt/caddy/log:/var/log/caddy"
+  - path: "/opt/caddy/Caddyfile"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      my.server {
+          proxy / lto:3000
+          tls email@my.server
+
+          log /var/log/caddy/access.log {
+              rotate {
+                  age 90
+              }
+          }
+      }
