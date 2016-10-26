@@ -1,5 +1,5 @@
 NAME=ragnarb/lto
-VERSION=0.1
+VERSION=$(shell git describe --long --tags master | cut -d - -f 1-1)
 
 default: build
 
