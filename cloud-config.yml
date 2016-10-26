@@ -63,7 +63,7 @@ write_files:
       URL_SECRET=""
       FILES_PATH=""
       BASE_URL=""
-      OPTS=""
+      OPTS="-v /opt/files:$FILES_PATH -e S3_ACCESS_KEY=$S3_ACCESS_KEY -e S3_SECRET_KEY=$S3_SECRET_KEY -e S3_REGION=$S3_REGION -e S3_BUCKET=$S3_BUCKET -e URL_SECRET=$URL_SECRET -e FILES_PATH=$FILES_PATH -e BASE_URL=$BASE_URL"
   - path: "/etc/default/redis"
     permissions: "0644"
     owner: "root"
