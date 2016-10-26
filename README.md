@@ -1,11 +1,11 @@
 ## Limited Time Offer
 
-LTO is a static file server with expiring links. New links are generated on-demand with a configurable time-to-live. Additionally and optionally, if a link with a valid time token points to a file that doesn't exist - a signed temporary redirect to Amazon S3 is provided instead.
+LTO is a static file server with expiring temporary links. New links are generated on-demand with a configurable time-to-live. Additionally and optionally, if a link with a valid time token points to a file that doesn't exist, a signed temporary redirect to Amazon S3 is provided instead.
 
 
 ### Configuration
 
-See [cloud-config.yml](./cloud-config.yml) for an example deployment. Adjust the environment variables in the `/etc/default/lto` to reflect your setup. Alternatively, run `ragnarb/lto` directly with the environment variables passed in.
+See [cloud-config.yml](./cloud-config.yml) for an example deployment. Adjust the environment variables in `/etc/default/lto` to reflect your setup. Alternatively, run `ragnarb/lto` directly with the environment variables passed in.
 
 Supported environment variables:
 
